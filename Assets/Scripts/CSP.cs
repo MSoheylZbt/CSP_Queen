@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,9 @@ public class CSP : MonoBehaviour
 
     public List<Queen> unassignedQueens = new List<Queen>(); //Variables
     public List<Queen> assignedQueens = new List<Queen>();
+
+    Queue<Arc> arcs = new Queue<Arc>();
+    Arc[,] neighbors = new Arc[8, 8];
 
     bool isFirstRun = true;
 
@@ -23,13 +27,39 @@ public class CSP : MonoBehaviour
 
     void InitProblem()
     {
+        InitQueens();
+        InitArcs_Neighbors();
+    }
+
+
+    private void InitQueens()
+    {
         for (int i = 0; i < 8; i++)
         {
-            Queen queen = Instantiate(queenPref,this.transform);
+            Queen queen = Instantiate(queenPref, this.transform);
             queen.Init(i);
             queen.name = "Queen " + i;
             unassignedQueens.Add(queen);
         }
+    }
+
+    private void InitArcs_Neighbors()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            Queen left = unassignedQueens[i];
+
+            for (int j = 0; j < 8; j++)
+            {
+                if (left == unassignedQueens[i])
+                    continue;
+
+                Arc temp = new Arc(left, unassignedQueens[j]);
+                arcs.Enqueue(temp);
+                neighbors[i, j] = temp;
+            }
+        }
+
     }
 
 
@@ -42,6 +72,7 @@ public class CSP : MonoBehaviour
             print("Problem Solved !");
             return true;
         }
+
         //print(selectedQueen.name + " <color=magenta> Selected </color>");
 
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
@@ -71,6 +102,9 @@ public class CSP : MonoBehaviour
     }
 
 
+
+
+    //TODO : Use degree instead => we are not deleting any value so we should use degree.
     /// <summary>
     /// Using MRV
     /// </summary>
@@ -115,17 +149,45 @@ public class CSP : MonoBehaviour
         return true;
     }
 
+    bool DeleteInconsitentValues(Queen queen)
+    {
+        int queenX = queen.gridX;
+        int queenY = queen.gridY;
+        foreach (Queen tempQueen in unassignedQueens)
+        {
+            tempQueen.gridYvalues.Remove(queenY);
+            int diagonal = Mathf.Abs(queenX - tempQueen.gridX) + queenY; // Delta X of two threating queen is equal to their Delta Y.
+            tempQueen.gridYvalues.Remove(diagonal);
+
+            if (tempQueen.gridYvalues.Count <= 0)
+            {
+                return false; // We reach a blank set
+            }
+        }
+
+        return true;
+
+    }
+
     void AC3()
     {
-
+        while(arcs.Count > 0)
+        {
+            Arc checkingArc = arcs.Dequeue();
+            if(checkingArc.CheckforConsistency())
+            {
+                AddNeighborArcs(checkingArc);
+            }
+        }
     }
 
-    bool CheckArcConsistency(Queen leftVar,Queen rightVar)
+    void AddNeighborArcs(Arc mainArc)
     {
-        bool isConsitent = false;
-        return isConsitent;
+        for (int i = 0; i < 8; i++)
+        {
+            
+        }
     }
-
 
     private void PrintAssigned()
     {
