@@ -21,14 +21,6 @@ public class CSP : MonoBehaviour
     }
 
 
-    void SetQueenPositions()
-    {
-        foreach (Queen queen in assignedQueens)
-        {
-            queen.transform.position = gridRef.board[queen.gridX, queen.gridY];
-        }
-    }
-
     void InitProblem()
     {
         for (int i = 0; i < 8; i++)
@@ -50,12 +42,11 @@ public class CSP : MonoBehaviour
             print("Problem Solved !");
             return true;
         }
-        print(selectedQueen.name + " <color=magenta> Selected </color>");
+        //print(selectedQueen.name + " <color=magenta> Selected </color>");
 
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
         {
             selectedQueen.gridY = y;
-            //selectedQueen.gridYvalues.Remove(y); // ???
 
             if(CheckForConsistency(selectedQueen))
             {
@@ -69,7 +60,7 @@ public class CSP : MonoBehaviour
                     return result;
 
                 unassignedQueens.Add(selectedQueen);
-                print(selectedQueen.name + "<color=green> Added to unassigned </color>");    
+                //print(selectedQueen.name + "<color=green> Added to unassigned </color>");    
                 assignedQueens.Remove(selectedQueen);
                 //print(selectedQueen.name + "<color=red> Removed from assigned </color>");    
             }
@@ -77,47 +68,8 @@ public class CSP : MonoBehaviour
 
         return false;
 
-        //while(_queens.Count > 0)
-        //{
-        //    Queen selectedQueen = SelectUnassignedQueen();
-        //    int index = 0;
-        //    while(selectedQueen.gridYvalues.Count > 0)
-        //    {
-        //        selectedQueen.gridY = selectedQueen.gridYvalues[index];
-        //        List<Queen> tempQueens = _queens;
-        //        index++;
-
-        //        if(DeleteInconsitentValues(selectedQueen))
-        //        {
-        //            if (!CheckforFinal())
-        //                return;
-        //            break; // Value for this queen is selected go to next Queen
-        //        }
-        //        else
-        //        {
-        //            _queens = tempQueens; // Reverse delted elements from set
-        //            continue;
-        //        }
-        //    }
-        //}
-
     }
 
-    private void PrintAssigned()
-    {
-        foreach (Queen queen in assignedQueens)
-        {
-            print(queen.name + "<color=yellow> is assigned </color>");
-        }
-    }
-
-    private void PrintUnassigned()
-    {
-        foreach (Queen queen in unassignedQueens)
-        {
-            print(queen.name + " is not assigned");
-        }
-    }
 
     /// <summary>
     /// Using MRV
@@ -138,32 +90,12 @@ public class CSP : MonoBehaviour
         return null;
     }
 
-    bool DeleteInconsitentValues(Queen queen)
-    {
-        int queenX = queen.gridX;
-        int queenY = queen.gridY;
-        foreach (Queen tempQueen in unassignedQueens)
-        {
-            tempQueen.gridYvalues.Remove(queenY);
-            int diagonal = Mathf.Abs(queenX - tempQueen.gridX) + queenY; // Delta X of two threating queen is equal to their Delta Y.
-            tempQueen.gridYvalues.Remove(diagonal);
-
-            if(tempQueen.gridYvalues.Count <= 0 )
-            {
-                return false; // We reach a blank set
-            }
-        }
-
-        return true;
-
-    }
-
     bool CheckForConsistency(Queen queen)
     {
         int queenX = queen.gridX;
         int queenY = queen.gridY;
 
-        PrintAssigned();
+        //PrintAssigned();
 
         foreach (Queen tempQueen in assignedQueens)
         {
@@ -173,13 +105,13 @@ public class CSP : MonoBehaviour
             bool diagonal = Mathf.Abs(tempQueen.gridX - queenX) == Mathf.Abs(tempQueen.gridY - queenY);
             if (diagonal || (tempQueen.gridX == queenX) || (tempQueen.gridY == queenY))
             {
-                print( queen.name + " at " + queenX + " " + queenY + " is not consistent " );
+                //print( queen.name + " at " + queenX + " " + queenY + " is not consistent " );
                 return false;
             }
             else
                 continue;
         }
-        print( queen.name + " at " + queenX + " " + queenY + " is consistent " );
+        //print( queen.name + " at " + queenX + " " + queenY + " is consistent " );
         return true;
     }
 
@@ -188,15 +120,35 @@ public class CSP : MonoBehaviour
 
     }
 
-
     bool CheckArcConsistency(Queen leftVar,Queen rightVar)
     {
         bool isConsitent = false;
         return isConsitent;
     }
 
-    bool CheckforFinal()
+
+    private void PrintAssigned()
     {
-        return true;
+        foreach (Queen queen in assignedQueens)
+        {
+            print(queen.name + "<color=yellow> is assigned </color>");
+        }
     }
+
+    private void PrintUnassigned()
+    {
+        foreach (Queen queen in unassignedQueens)
+        {
+            print(queen.name + " is not assigned");
+        }
+    }
+
+    void SetQueenPositions()
+    {
+        foreach (Queen queen in assignedQueens)
+        {
+            queen.transform.position = gridRef.board[queen.gridX, queen.gridY];
+        }
+    }
+
 }
