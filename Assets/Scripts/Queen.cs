@@ -16,4 +16,13 @@ public class Queen : MonoBehaviour
         gridX = x;
         gridYvalues = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7 };
     }
+
+
+    public void PrintValues()
+    {
+        foreach (int item in gridYvalues)
+        {
+            print(item);
+        }
+    }
 }

@@ -12,14 +12,15 @@ public class CSP : MonoBehaviour
     public List<Queen> assignedQueens = new List<Queen>();
 
     Queue<Arc> arcs = new Queue<Arc>();
-    Arc[,] neighbors = new Arc[8, 8];
+    Arc[,] arcsTable = new Arc[8, 8];
 
     bool isFirstRun = true;
+    int expandedCount = 0;
 
     private void Start()
     {
         InitProblem();
-        AC3();
+        //AC3();
         SolveQueenProblem();
         SetQueenPositions();
     }
@@ -51,12 +52,14 @@ public class CSP : MonoBehaviour
 
             for (int j = 0; j < 8; j++)
             {
-                if (left == unassignedQueens[i])
+                if (left == unassignedQueens[j])
                     continue;
 
                 Arc temp = new Arc(left, unassignedQueens[j]);
                 arcs.Enqueue(temp);
-                neighbors[i, j] = temp;
+                arcsTable[i, j] = temp;
+
+                //print("Left is " + left + " Right is " + unassignedQueens[j] + " at " + i + " " + j);
             }
         }
 
@@ -67,9 +70,11 @@ public class CSP : MonoBehaviour
     {
         Queen selectedQueen = SelectUnassignedQueen();
 
+        expandedCount++;
+
         if(!selectedQueen && !isFirstRun)
         {
-            print("Problem Solved !");
+            print("Problem Solved with "+ expandedCount +" expanded nodes");
             return true;
         }
 
@@ -78,8 +83,8 @@ public class CSP : MonoBehaviour
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
         {
             selectedQueen.gridY = y;
-
-            if(CheckForConsistency(selectedQueen))
+            AC3();
+            if (CheckForConsistency(selectedQueen))
             {
                 unassignedQueens.Remove(selectedQueen);
                 //print(selectedQueen.name + " <color=red>  Removed from unassigned </color>");    
@@ -139,7 +144,8 @@ public class CSP : MonoBehaviour
             bool diagonal = Mathf.Abs(tempQueen.gridX - queenX) == Mathf.Abs(tempQueen.gridY - queenY);
             if (diagonal || (tempQueen.gridX == queenX) || (tempQueen.gridY == queenY))
             {
-                //print( queen.name + " at " + queenX + " " + queenY + " is not consistent " );
+                print( queen.name + " at " + queenX + " " + queenY + " is not consistent " );
+                //queen.gridYvalues.Remove(queenY);
                 return false;
             }
             else
@@ -149,32 +155,13 @@ public class CSP : MonoBehaviour
         return true;
     }
 
-    bool DeleteInconsitentValues(Queen queen)
-    {
-        int queenX = queen.gridX;
-        int queenY = queen.gridY;
-        foreach (Queen tempQueen in unassignedQueens)
-        {
-            tempQueen.gridYvalues.Remove(queenY);
-            int diagonal = Mathf.Abs(queenX - tempQueen.gridX) + queenY; // Delta X of two threating queen is equal to their Delta Y.
-            tempQueen.gridYvalues.Remove(diagonal);
-
-            if (tempQueen.gridYvalues.Count <= 0)
-            {
-                return false; // We reach a blank set
-            }
-        }
-
-        return true;
-
-    }
 
     void AC3()
     {
         while(arcs.Count > 0)
         {
             Arc checkingArc = arcs.Dequeue();
-            if(checkingArc.CheckforConsistency())
+            if(checkingArc.DeleteInconsitentValues())
             {
                 AddNeighborArcs(checkingArc);
             }
@@ -183,11 +170,15 @@ public class CSP : MonoBehaviour
 
     void AddNeighborArcs(Arc mainArc)
     {
+        int rightQueenX = mainArc.GetRightQueenX();
+
         for (int i = 0; i < 8; i++)
         {
-            
+            if(arcsTable[i, rightQueenX] != null) //for i = rightQueenX this is always null.
+             arcs.Enqueue(arcsTable[i, rightQueenX]);
         }
     }
+
 
     private void PrintAssigned()
     {
