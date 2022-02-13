@@ -11,6 +11,8 @@ public class CSP : MonoBehaviour
     public List<Queen> unassignedQueens = new List<Queen>(); //Variables
     public List<Queen> assignedQueens = new List<Queen>();
 
+
+
     Queue<Arc> arcs = new Queue<Arc>();
     Arc[,] arcsTable = new Arc[8, 8];
 
@@ -69,41 +71,46 @@ public class CSP : MonoBehaviour
     bool SolveQueenProblem()
     {
         Queen selectedQueen = SelectUnassignedQueen();
+        //print(selectedQueen.name);
 
         expandedCount++;
 
-        if(!selectedQueen && !isFirstRun)
-        {
-            print("Problem Solved with "+ expandedCount +" expanded nodes");
-            return true;
-        }
-
-        //print(selectedQueen.name + " <color=magenta> Selected </color>");
-
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
         {
-            selectedQueen.gridY = y;
-            AC3();
-            if (CheckForConsistency(selectedQueen))
+            selectedQueen.gridY = selectedQueen.gridYvalues[y];
+
+            if (RemoveIncosistentValues(selectedQueen))
+                continue;
+
+            //AC3();
+
+            if (CheckForConsistency(selectedQueen)) // for assigned variables
             {
+                //print(selectedQueen.name + " <color=magenta> With </color>" + 
+                //    selectedQueen.gridYvalues[y] + " selected");
+
                 unassignedQueens.Remove(selectedQueen);
-                //print(selectedQueen.name + " <color=red>  Removed from unassigned </color>");    
                 assignedQueens.Add(selectedQueen);
-                //print(selectedQueen.name + "<color=green> Added to assigned </color>");    
+
+                if (unassignedQueens.Count <= 0)
+                {
+                    print("Problem Solved with " + expandedCount + " expanded nodes");
+                    return true;
+                }
 
                 bool result = SolveQueenProblem();
                 if (result)
                     return result;
 
+                //print("<color=green> Change Selected Value for </color>" + selectedQueen.name);
+
                 unassignedQueens.Add(selectedQueen);
-                //print(selectedQueen.name + "<color=green> Added to unassigned </color>");    
                 assignedQueens.Remove(selectedQueen);
-                //print(selectedQueen.name + "<color=red> Removed from assigned </color>");    
+
+                RestoreIncosistentValues(selectedQueen);
             }
         }
-
         return false;
-
     }
 
 
@@ -134,7 +141,6 @@ public class CSP : MonoBehaviour
         int queenX = queen.gridX;
         int queenY = queen.gridY;
 
-        //PrintAssigned();
 
         foreach (Queen tempQueen in assignedQueens)
         {
@@ -142,10 +148,9 @@ public class CSP : MonoBehaviour
                 continue;
 
             bool diagonal = Mathf.Abs(tempQueen.gridX - queenX) == Mathf.Abs(tempQueen.gridY - queenY);
-            if (diagonal || (tempQueen.gridX == queenX) || (tempQueen.gridY == queenY))
+            if (diagonal || (tempQueen.gridY == queenY))
             {
-                print( queen.name + " at " + queenX + " " + queenY + " is not consistent " );
-                //queen.gridYvalues.Remove(queenY);
+                //print( "for "+ queen.name + " with value of  " + queen.gridY + " " + tempQueen.name + " at " + tempQueen.gridX + " " + tempQueen.gridY+ " is not consistent " );
                 return false;
             }
             else
@@ -154,6 +159,70 @@ public class CSP : MonoBehaviour
         //print( queen.name + " at " + queenX + " " + queenY + " is consistent " );
         return true;
     }
+
+
+    bool RemoveIncosistentValues(Queen queen)
+    {
+        int queenX = queen.gridX;
+        int queenY = queen.gridY;
+
+        foreach (Queen tempQueen in unassignedQueens)
+        {
+            if (queen.gameObject == tempQueen.gameObject)
+                continue;
+
+            if (tempQueen.gridYvalues.Count <= 0)
+                continue;
+
+            tempQueen.Backup();
+
+            tempQueen.gridYvalues.Remove(queenY);
+
+            // Delta X of two threating queen is equal to their Delta Y.
+            int diagonal_1 = Mathf.Abs(queenX - tempQueen.gridX) + queenY; 
+            int diagonal_2 = queenY - Mathf.Abs(queenX - tempQueen.gridX); 
+            tempQueen.gridYvalues.Remove(diagonal_1);
+            tempQueen.gridYvalues.Remove(diagonal_2);
+
+            if (tempQueen.gridYvalues.Count <= 0)
+            {
+                tempQueen.RestoreBackup();
+                return true; // Reach blank set.
+            }
+
+            //print(queenY + "<color=red> Removed from </color> " + tempQueen.name);
+            //print(diagonal_1 + "<color=red> Removed from </color>" + tempQueen.name);
+            //print(diagonal_2 + "<color=red> Removed from </color>" + tempQueen.name);
+        }
+
+        return false;
+    }
+
+    void RestoreIncosistentValues(Queen queen)
+    {
+        int queenX = queen.gridX;
+        int queenY = queen.gridY;
+        foreach (Queen tempQueen in unassignedQueens)
+        {
+            if (queen.gameObject == tempQueen.gameObject)
+                continue;
+
+            if (tempQueen.gridYvalues.Count <= 0)
+                continue;
+
+            if (!tempQueen.gridYvalues.Contains(queenY))
+                tempQueen.gridYvalues.Add(queenY);
+
+            int diagonal_1 = Mathf.Abs(queenX - tempQueen.gridX) + queenY;
+            if (!tempQueen.gridYvalues.Contains(diagonal_1) && diagonal_1 < 8)
+                tempQueen.gridYvalues.Add(diagonal_1);
+
+            int diagonal_2 = queenY - Mathf.Abs(queenX - tempQueen.gridX);
+            if(!tempQueen.gridYvalues.Contains(diagonal_2) && diagonal_2 > 0 && diagonal_2 < 8)
+                tempQueen.gridYvalues.Add(diagonal_2);
+        }
+    }
+
 
 
     void AC3()
@@ -184,7 +253,7 @@ public class CSP : MonoBehaviour
     {
         foreach (Queen queen in assignedQueens)
         {
-            print(queen.name + "<color=yellow> is assigned </color>");
+            print(queen.name + "<color=yellow> is assigned at </color>" + queen.gridX + " " + queen.gridY);
         }
     }
 
