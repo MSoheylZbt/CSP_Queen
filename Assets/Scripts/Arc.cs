@@ -19,16 +19,20 @@ public class Arc
         for (int i = 0; i < leftQueen.gridYvalues.Count;i++)
         {
             int checkingValue = leftQueen.gridYvalues[i];
-            //rightQueen.Backup();
+
+            rightQueen.Backup();
 
             //for each value of leftQueen,delete all inconsitent value from rightQueen.
-
             rightQueen.gridYvalues.Remove(checkingValue);
             // Delta X of two threating queen is equal to their Delta Y.
             int diagonal_1 = Mathf.Abs(leftQueen.gridX - rightQueen.gridX) + checkingValue; 
             rightQueen.gridYvalues.Remove(diagonal_1);
             int diagonal_2 = checkingValue - Mathf.Abs(leftQueen.gridX - rightQueen.gridX);
             rightQueen.gridYvalues.Remove(diagonal_2);
+
+            PrintArc();
+            Debug.Log(rightQueen.gridYvalues.Count);
+
 
             if (rightQueen.gridYvalues.Count <= 0)// It means checkingValue is inconsistent.
             {
@@ -37,7 +41,8 @@ public class Arc
                 Debug.Log(checkingValue + " from " + leftQueen.name);
                 result = true;
             }
-            //rightQueen.RestoreBackup();
+
+            rightQueen.RestoreBackup();
         }
 
         return result;

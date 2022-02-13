@@ -11,12 +11,9 @@ public class CSP : MonoBehaviour
     public List<Queen> unassignedQueens = new List<Queen>(); //Variables
     public List<Queen> assignedQueens = new List<Queen>();
 
-
-
     Queue<Arc> arcs = new Queue<Arc>();
     Arc[,] arcsTable = new Arc[8, 8];
 
-    bool isFirstRun = true;
     int expandedCount = 0;
 
     private void Start()
@@ -82,8 +79,6 @@ public class CSP : MonoBehaviour
             if (RemoveIncosistentValues(selectedQueen))
                 continue;
 
-            //AC3();
-
             if (CheckForConsistency(selectedQueen)) // for assigned variables
             {
                 //print(selectedQueen.name + " <color=magenta> With </color>" + 
@@ -123,17 +118,19 @@ public class CSP : MonoBehaviour
     Queen SelectUnassignedQueen()
     {
         int minLength = int.MaxValue;
-        isFirstRun = false;
-
+        Queen selectedQueen = new Queen();
         foreach (Queen tempQueen in unassignedQueens)
         {
-            if(tempQueen.gridYvalues.Count < minLength)
+            //print(" for " + tempQueen.name + " is " + tempQueen.gridYvalues.Count);
+            if (tempQueen.gridYvalues.Count <= minLength)
             {
                 minLength = tempQueen.gridYvalues.Count;
-                return tempQueen;
+                selectedQueen = tempQueen;
+                continue;
             }
         }
-        return null;
+        //print("<color=green> min: </color>" + selectedQueen.name);
+        return selectedQueen;
     }
 
     bool CheckForConsistency(Queen queen)
@@ -189,6 +186,8 @@ public class CSP : MonoBehaviour
                 tempQueen.RestoreBackup();
                 return true; // Reach blank set.
             }
+            else
+                AC3();
 
             //print(queenY + "<color=red> Removed from </color> " + tempQueen.name);
             //print(diagonal_1 + "<color=red> Removed from </color>" + tempQueen.name);
