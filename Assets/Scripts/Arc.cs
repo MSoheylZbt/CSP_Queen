@@ -7,45 +7,69 @@ public class Arc
     Queen leftQueen;
     Queen rightQueen;
 
+    public bool isBlankReached = false;
+
     public Arc(Queen leftToSet,Queen rightToSet)
     {
         leftQueen = leftToSet;
         rightQueen = rightToSet;
+
     }
 
-    public bool DeleteInconsitentValues()
+    public bool CheckForConsistency()
     {
-        bool result = false;
-        for (int i = 0; i < leftQueen.gridYvalues.Count;i++)
+
+        bool isValueDeleted = false;
+
+        //Debug.Log("<color=red> ---- New Call ---- </color>");
+        //PrintArc();
+        List<int> tempLeftValues = MakeTempValues(leftQueen);
+
+
+        for (int i = 0; i < leftQueen.gridYvalues.Count; i++)
         {
             int checkingValue = leftQueen.gridYvalues[i];
 
-            rightQueen.Backup();
+            List<int> tempRightValues = MakeTempValues(rightQueen);
+
+            //Debug.Log("checkingValue: " + checkingValue);
+
+
 
             //for each value of leftQueen,delete all inconsitent value from rightQueen.
-            rightQueen.gridYvalues.Remove(checkingValue);
+            tempRightValues.Remove(checkingValue);
+
             // Delta X of two threating queen is equal to their Delta Y.
-            int diagonal_1 = Mathf.Abs(leftQueen.gridX - rightQueen.gridX) + checkingValue; 
-            rightQueen.gridYvalues.Remove(diagonal_1);
+            int diagonal_1 = Mathf.Abs(leftQueen.gridX - rightQueen.gridX) + checkingValue;
+            tempRightValues.Remove(diagonal_1);
             int diagonal_2 = checkingValue - Mathf.Abs(leftQueen.gridX - rightQueen.gridX);
-            rightQueen.gridYvalues.Remove(diagonal_2);
+            tempRightValues.Remove(diagonal_2);
 
-            PrintArc();
-            Debug.Log(rightQueen.gridYvalues.Count);
-
-
-            if (rightQueen.gridYvalues.Count <= 0)// It means checkingValue is inconsistent.
+            if (tempRightValues.Count <= 0)// It means checkingValue is inconsistent.
             {
-                leftQueen.gridYvalues.Remove(checkingValue);
-                PrintArc();
-                Debug.Log(checkingValue + " from " + leftQueen.name);
-                result = true;
-            }
+                tempLeftValues.Remove(checkingValue);
+                if (tempLeftValues.Count <= 0)
+                {
+                    isBlankReached = true;
+                    return false;
+                }
+                else
+                    leftQueen.RemoveFromValues(checkingValue);
 
-            rightQueen.RestoreBackup();
+                isValueDeleted = true;
+            }
         }
 
-        return result;
+        return isValueDeleted;
+    }
+
+    private List<int> MakeTempValues(Queen queen)
+    {
+        int[] temp = new int[queen.gridYvalues.Count];
+        queen.gridYvalues.CopyTo(temp);
+        List<int> tempRightValues = new List<int>();
+        tempRightValues.AddRange(temp);
+        return tempRightValues;
     }
 
     public void PrintArc()
@@ -53,9 +77,16 @@ public class Arc
         Debug.Log(leftQueen.name + "<color=red> To </color>" + rightQueen.name );
     }
 
-
-    public int GetRightQueenX()
+    public Queen GetLeftQueen()
     {
-        return rightQueen.gridX;
+        return leftQueen;
     }
+
+
+    public Queen GetRightQueen()
+    {
+        return rightQueen;
+    }
+
+
 }

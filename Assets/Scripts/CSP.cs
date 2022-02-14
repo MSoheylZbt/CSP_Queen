@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class CSP : MonoBehaviour
 {
+
+    public const int _queenNumber = 8;
+
     [SerializeField] ChessGrid gridRef;
     [SerializeField] Queen queenPref;
 
@@ -12,14 +15,13 @@ public class CSP : MonoBehaviour
     public List<Queen> assignedQueens = new List<Queen>();
 
     Queue<Arc> arcs = new Queue<Arc>();
-    Arc[,] arcsTable = new Arc[8, 8];
+    Arc[,] arcsTable = new Arc[_queenNumber, _queenNumber];
 
     int expandedCount = 0;
 
     private void Start()
     {
         InitProblem();
-        //AC3();
         SolveQueenProblem();
         SetQueenPositions();
     }
@@ -34,7 +36,7 @@ public class CSP : MonoBehaviour
 
     private void InitQueens()
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < _queenNumber; i++)
         {
             Queen queen = Instantiate(queenPref, this.transform);
             queen.Init(i);
@@ -45,11 +47,11 @@ public class CSP : MonoBehaviour
 
     private void InitArcs_Neighbors()
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < _queenNumber; i++)
         {
             Queen left = unassignedQueens[i];
 
-            for (int j = 0; j < 8; j++)
+            for (int j = 0; j < _queenNumber; j++)
             {
                 if (left == unassignedQueens[j])
                     continue;
@@ -75,9 +77,20 @@ public class CSP : MonoBehaviour
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
         {
             selectedQueen.gridY = selectedQueen.gridYvalues[y];
+            //print("<color=yellow> Selected value : </color>" + selectedQueen.gridYvalues[y] + " for " + selectedQueen.name);
+
+            //selectedQueen.PrintValues();
 
             if (RemoveIncosistentValues(selectedQueen))
                 continue;
+            else
+            {
+                if (AC3(selectedQueen) == false)
+                {
+                    //print("AC3 reach blank");
+                    selectedQueen.RemoveFromValues(selectedQueen.gridYvalues[y]);
+                }
+            }
 
             if (CheckForConsistency(selectedQueen)) // for assigned variables
             {
@@ -103,6 +116,7 @@ public class CSP : MonoBehaviour
                 assignedQueens.Remove(selectedQueen);
 
                 RestoreIncosistentValues(selectedQueen);
+                MakeNewArcs();
             }
         }
         return false;
@@ -173,32 +187,55 @@ public class CSP : MonoBehaviour
 
             tempQueen.Backup();
 
-            tempQueen.gridYvalues.Remove(queenY);
+            tempQueen.RemoveFromValues(queenY);
 
             // Delta X of two threating queen is equal to their Delta Y.
             int diagonal_1 = Mathf.Abs(queenX - tempQueen.gridX) + queenY; 
             int diagonal_2 = queenY - Mathf.Abs(queenX - tempQueen.gridX); 
-            tempQueen.gridYvalues.Remove(diagonal_1);
-            tempQueen.gridYvalues.Remove(diagonal_2);
+            tempQueen.RemoveFromValues(diagonal_1);
+            tempQueen.RemoveFromValues(diagonal_2);
 
             if (tempQueen.gridYvalues.Count <= 0)
             {
                 tempQueen.RestoreBackup();
                 return true; // Reach blank set.
             }
-            else
-                AC3();
-
-            //print(queenY + "<color=red> Removed from </color> " + tempQueen.name);
-            //print(diagonal_1 + "<color=red> Removed from </color>" + tempQueen.name);
-            //print(diagonal_2 + "<color=red> Removed from </color>" + tempQueen.name);
         }
 
         return false;
     }
 
+    bool AC3(Queen checkingQueen)
+    {
+        while(arcs.Count > 0)
+        {
+            Arc checkingArc = arcs.Dequeue();
+            if (checkingArc.GetLeftQueen() == checkingQueen)
+                continue;
+
+            //Debug.Log("<color=magenta> Backup Called ---- </color>");
+            checkingArc.GetRightQueen().Backup();
+            checkingArc.GetLeftQueen().Backup();
+
+
+            if (checkingArc.CheckForConsistency())
+                AddNeighborArcs(checkingArc);
+            else
+            {
+                if(checkingArc.isBlankReached)
+                {
+                    checkingArc.GetLeftQueen().RestoreBackup();
+                    checkingArc.GetRightQueen().RestoreBackup();
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     void RestoreIncosistentValues(Queen queen)
     {
+        //print("<color=magenta> Resotring for </color>" + queen.name);
         int queenX = queen.gridX;
         int queenY = queen.gridY;
         foreach (Queen tempQueen in unassignedQueens)
@@ -213,37 +250,46 @@ public class CSP : MonoBehaviour
                 tempQueen.gridYvalues.Add(queenY);
 
             int diagonal_1 = Mathf.Abs(queenX - tempQueen.gridX) + queenY;
-            if (!tempQueen.gridYvalues.Contains(diagonal_1) && diagonal_1 < 8)
+            if (!tempQueen.gridYvalues.Contains(diagonal_1) && diagonal_1 < _queenNumber)
                 tempQueen.gridYvalues.Add(diagonal_1);
 
             int diagonal_2 = queenY - Mathf.Abs(queenX - tempQueen.gridX);
-            if(!tempQueen.gridYvalues.Contains(diagonal_2) && diagonal_2 > 0 && diagonal_2 < 8)
+            if(!tempQueen.gridYvalues.Contains(diagonal_2) && diagonal_2 > 0 && diagonal_2 < _queenNumber)
                 tempQueen.gridYvalues.Add(diagonal_2);
         }
     }
 
 
-
-    void AC3()
+    void AddNeighborArcs(Arc mainArc)
     {
-        while(arcs.Count > 0)
+        int rightQueenX = mainArc.GetRightQueen().gridX;
+
+        for (int i = 0; i < _queenNumber; i++)
         {
-            Arc checkingArc = arcs.Dequeue();
-            if(checkingArc.DeleteInconsitentValues())
+            if(arcsTable[i, rightQueenX] != null) //for i = rightQueenX this is always null.
             {
-                AddNeighborArcs(checkingArc);
+                //print("Neighbor : ");
+                //arcsTable[i, rightQueenX].PrintArc();
+                arcs.Enqueue(arcsTable[i, rightQueenX]);
             }
+
         }
     }
 
-    void AddNeighborArcs(Arc mainArc)
+    void MakeNewArcs()
     {
-        int rightQueenX = mainArc.GetRightQueenX();
-
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < unassignedQueens.Count; i++)
         {
-            if(arcsTable[i, rightQueenX] != null) //for i = rightQueenX this is always null.
-             arcs.Enqueue(arcsTable[i, rightQueenX]);
+            Queen left = unassignedQueens[i];
+
+            for (int j = 0; j < unassignedQueens.Count; j++)
+            {
+                if (left == unassignedQueens[j])
+                    continue;
+
+                Arc temp = new Arc(left, unassignedQueens[j]);
+                arcs.Enqueue(temp);
+            }
         }
     }
 

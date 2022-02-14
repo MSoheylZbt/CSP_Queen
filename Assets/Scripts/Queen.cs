@@ -15,12 +15,14 @@ public class Queen : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         gridX = x;
-        gridYvalues = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7 };
+        gridYvalues = new List<int> {0, 1, 2, 3, 4, 5, 6, 7};
     }
 
 
     public void Backup()
     {
+        //Debug.Log("<color=green> ---- Backup ---- </color>");
+        //PrintValues();
         backupValues = new int[gridYvalues.Count];
         gridYvalues.CopyTo(backupValues);
     }
@@ -31,13 +33,14 @@ public class Queen : MonoBehaviour
         //print(this.name + "<color=yellow> Backup values restored </color>");
         gridYvalues.Clear();
         gridYvalues.AddRange(backupValues);
+        //PrintValues();
     }
 
     public void PrintValues()
     {
         if (gridYvalues.Count <= 0)
         {
-            print("<color=black> List is Empty </color>");
+            //print("<color=black> List is Empty </color>");
             return;
         }
 
@@ -45,5 +48,11 @@ public class Queen : MonoBehaviour
         {
             print(this.name + " " + item);
         }
+    }
+
+    public void RemoveFromValues(int value)
+    {
+        //print(value + "<color=black> is removed from </color>" + name);
+        gridYvalues.Remove(value);
     }
 }
