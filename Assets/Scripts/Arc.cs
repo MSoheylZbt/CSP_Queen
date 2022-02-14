@@ -7,22 +7,28 @@ public class Arc
     Queen leftQueen;
     Queen rightQueen;
 
-    public bool isBlankReached = false;
+    public bool isBlankReached = false; //for checking if we reach a blank sets of values.
 
-    public Arc(Queen leftToSet,Queen rightToSet)
+    public Arc(Queen leftToSet,Queen rightToSet) //Constructor
     {
         leftQueen = leftToSet;
         rightQueen = rightToSet;
 
     }
 
+    /// <summary>
+    /// Loop through all values of left queen and see if there is any value in right queen that 
+    /// satisfy constraint.
+    /// </summary>
+    /// <returns></returns>
+
     public bool CheckForConsistency()
     {
-
-        bool isValueDeleted = false;
-
         //Debug.Log("<color=red> ---- New Call ---- </color>");
         //PrintArc();
+
+        bool isValueDeleted = false;
+        // Make a temporary list only for checking getting empty after deleting values.
         List<int> tempLeftValues = MakeTempValues(leftQueen);
 
 
@@ -30,11 +36,11 @@ public class Arc
         {
             int checkingValue = leftQueen.gridYvalues[i];
 
+            // It is here because, with each value of leftQueen, should be compared to all of right queen values.
+            // ( for not deleting real values )
             List<int> tempRightValues = MakeTempValues(rightQueen);
 
             //Debug.Log("checkingValue: " + checkingValue);
-
-
 
             //for each value of leftQueen,delete all inconsitent value from rightQueen.
             tempRightValues.Remove(checkingValue);
@@ -45,16 +51,17 @@ public class Arc
             int diagonal_2 = checkingValue - Mathf.Abs(leftQueen.gridX - rightQueen.gridX);
             tempRightValues.Remove(diagonal_2);
 
-            if (tempRightValues.Count <= 0)// It means checkingValue is inconsistent.
+            // We delete all inconsistent values and we reach empty set,it means checkingValue is inconsistent.
+            if (tempRightValues.Count <= 0)
             {
                 tempLeftValues.Remove(checkingValue);
                 if (tempLeftValues.Count <= 0)
                 {
                     isBlankReached = true;
-                    return false;
+                    return false; // Arc consistency failled, it means we should try another value for selected variable in CSP.
                 }
                 else
-                    leftQueen.RemoveFromValues(checkingValue);
+                    leftQueen.RemoveFromValues(checkingValue); // Remove inconsistent value.
 
                 isValueDeleted = true;
             }
@@ -63,6 +70,11 @@ public class Arc
         return isValueDeleted;
     }
 
+    /// <summary>
+    /// This function returns a copy of a list without being direct reference to it.
+    /// </summary>
+    /// <param name="queen"></param>
+    /// <returns></returns>
     private List<int> MakeTempValues(Queen queen)
     {
         int[] temp = new int[queen.gridYvalues.Count];
@@ -70,11 +82,6 @@ public class Arc
         List<int> tempRightValues = new List<int>();
         tempRightValues.AddRange(temp);
         return tempRightValues;
-    }
-
-    public void PrintArc()
-    {
-        Debug.Log(leftQueen.name + "<color=red> To </color>" + rightQueen.name );
     }
 
     public Queen GetLeftQueen()
@@ -86,6 +93,11 @@ public class Arc
     public Queen GetRightQueen()
     {
         return rightQueen;
+    }
+
+    public void PrintArc() // for debug
+    {
+        Debug.Log(leftQueen.name + "<color=red> To </color>" + rightQueen.name );
     }
 
 
