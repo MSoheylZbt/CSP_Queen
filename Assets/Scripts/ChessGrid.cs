@@ -11,8 +11,6 @@ public class ChessGrid : MonoBehaviour //inherited from MonoBehaviour. This will
 
     public Vector2[,] board = new Vector2[8, 8];//2D array of positions for keeping grid.
 
-
-
     private void Awake() // This Function will run at Start of the game.
     {
         CreateGrid();
@@ -44,8 +42,11 @@ public class ChessGrid : MonoBehaviour //inherited from MonoBehaviour. This will
     {
         Vector2 firstPos = Camera.main.ScreenToWorldPoint(new Vector2(0, 0));
         Vector2 temp = Vector2.zero; //Vector2 is used for not indicating a direction or position but just for holding two numbers.
-        temp.x = firstPos.x / 25;
-        temp.y = firstPos.y / 25;
+
+        /// FIXED  => 25 to 8
+
+        temp.x = firstPos.x / 8;
+        temp.y = firstPos.y / 8;
         return temp;
     }
 

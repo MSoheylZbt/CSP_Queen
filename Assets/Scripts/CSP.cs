@@ -83,7 +83,6 @@ public class CSP : MonoBehaviour
         Queen selectedQueen = SelectUnassignedQueen();
         //print(selectedQueen.name);
 
-        expandedCount++;
 
         if (unassignedQueens.Count <= 0) // Check for reaching soloution
         {
@@ -91,6 +90,8 @@ public class CSP : MonoBehaviour
             return true;
         }
 
+        ///FIXED : Do not count last one ! 
+        expandedCount++;
 
         for (int y = 0; y < selectedQueen.gridYvalues.Count; y++)
         {
@@ -105,8 +106,12 @@ public class CSP : MonoBehaviour
             {
                 if (AC3(selectedQueen) == false)
                 {
-                    //print("AC3 reach blank");
-                    selectedQueen.RemoveFromValues(selectedQueen.gridYvalues[y]);
+                    //print("ac3 reach blank");
+
+                    ///fixed => we need to go to next value!
+                    //selectedqueen.removefromvalues(selectedqueen.gridyvalues[y]);
+
+                    continue;
                 }
             }
 
@@ -124,10 +129,13 @@ public class CSP : MonoBehaviour
 
                 //print("<color=green> Change Selected Value for </color>" + selectedQueen.name);
 
+                ///FIXED : Moved here
+                RestoreIncosistentValues(selectedQueen);
+
+
                 unassignedQueens.Add(selectedQueen);
                 assignedQueens.Remove(selectedQueen);
 
-                RestoreIncosistentValues(selectedQueen);
             }
         }
         return false;
@@ -273,11 +281,12 @@ public class CSP : MonoBehaviour
         int queenY = queen.gridY;
         foreach (Queen tempQueen in unassignedQueens)
         {
-            if (queen.gameObject == tempQueen.gameObject)
-                continue;
+            ///FIXED : Commented
+            //if (queen.gameObject == tempQueen.gameObject)
+            //    continue;
 
-            if (tempQueen.gridYvalues.Count <= 0)
-                continue;
+            //if (tempQueen.gridYvalues.Count <= 0)
+            //    continue;
 
             if (!tempQueen.gridYvalues.Contains(queenY))
                 tempQueen.gridYvalues.Add(queenY);

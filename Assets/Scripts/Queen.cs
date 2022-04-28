@@ -13,7 +13,7 @@ public class Queen : MonoBehaviour
     public void Init(int x)
     {
         gridX = x;
-        gridYvalues = new List<int> {0, 1, 2, 3, 4, 5, 6, 7};
+        gridYvalues = new List<int> { 0,1,2,3,4,5,6,7};
     }
 
     /// <summary>

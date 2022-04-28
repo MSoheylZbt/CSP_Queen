@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64d3c1bb755133c4e805a3506c34e4aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileDistanceMultiplier: 6.48
+  tileDistanceMultiplier: 2.08
   square: {fileID: 3608286020344860329, guid: 68380a5063a177a4da167645e67a41d7, type: 3}
 --- !u!4 &411591018
 Transform:
